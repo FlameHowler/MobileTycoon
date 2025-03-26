@@ -7,25 +7,36 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        button { padding: 10px; font-size: 18px; margin: 10px; }
+        h1 { color: #333; }
+        button { padding: 10px 20px; font-size: 18px; }
     </style>
 </head>
 <body>
     <h1>Добро пожаловать в Mobile Tycoon!</h1>
-    <button onclick="startGame()">Создать смартфон</button>
-    <button onclick="viewStats()">Статистика</button>
+    <button id="start-game">Добавить смартфон</button>
+    <p id="status"></p>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand(); // Разворачиваем Mini App на весь экран
 
-        function startGame() {
-            tg.sendData(JSON.stringify({ action: "new_phone" }));
-        }
+        // Отправка данных о новом смартфоне
+        document.getElementById("start-game").addEventListener("click", async function() {
+            let userId = tg.initDataUnsafe?.user?.id || 0;
 
-        function viewStats() {
-            tg.sendData(JSON.stringify({ action: "stats" }));
-        }
+            try {
+                let response = await fetch("/api/action", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, action: "new_phone" })
+                });
+
+                let result = await response.json();
+                document.getElementById("status").innerText = result.message;
+            } catch (error) {
+                document.getElementById("status").innerText = "Произошла ошибка при добавлении смартфона.";
+            }
+        });
     </script>
 </body>
 </html>
